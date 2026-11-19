@@ -55,17 +55,21 @@ def get_ai_result(prompt: str, input_text: str):
             response = _client().models.generate_content(
                 model=config.llm_model,
                 contents=user_content,
-                config=types.GenerateContentConfig(system_instruction=[prompt]),
+                config=types.GenerateContentConfig(
+                    **{**config.llm_extra_params, "system_instruction": [prompt]}
+                ),
             )
             return response.text
-        completion = _client().chat.completions.create(
-            model=config.llm_model,
-            messages=[
+        kwargs = {
+            **config.llm_extra_params,
+            "model": config.llm_model,
+            "messages": [
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": user_content},
             ],
-            timeout=config.llm_timeout,
-        )
+            "timeout": config.llm_timeout,
+        }
+        completion = _client().chat.completions.create(**kwargs)
         return completion.choices[0].message.content
     except Exception as exc:
         logger.error("LLM request failed: %s", type(exc).__name__)
@@ -80,7 +84,7 @@ def get_ai_json_result(
         if config.llm_provider == "gemini":
             from google.genai import types
 
-            kwargs = {"system_instruction": [prompt]}
+            kwargs = {**config.llm_extra_params, "system_instruction": [prompt]}
             if config.llm_batching.response_format == "json_object":
                 kwargs["response_mime_type"] = "application/json"
             response = _client().models.generate_content(
@@ -90,6 +94,7 @@ def get_ai_json_result(
             )
             return response.text
         kwargs = {
+            **config.llm_extra_params,
             "model": config.llm_model,
             "messages": [
                 {"role": "system", "content": prompt},

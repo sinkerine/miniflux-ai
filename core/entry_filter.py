@@ -1,8 +1,15 @@
 import fnmatch
 
 
+INTERNAL_FEED_URLS = {"https://ai-news.miniflux", "https://feeds-status.miniflux"}
+
+
 def source_allowed(agent, entry):
     """Return whether current feed metadata permits an agent to use an entry."""
+    feed = entry.get("feed") or {}
+    site_url = feed.get("site_url")
+    if site_url and site_url.rstrip("/") in INTERNAL_FEED_URLS:
+        return False
     if agent is None:
         return True
 
@@ -17,10 +24,8 @@ def source_allowed(agent, entry):
         else agent.get("blacklist")
     )
     category_deny_list = agent.get("category_deny_list")
-    feed = entry.get("feed") or {}
     category_data = feed.get("category") or {}
     category = category_data.get("title")
-    site_url = feed.get("site_url")
 
     # Missing metadata must not bypass a configured rule. Empty deny lists do
     # not require metadata because they deny nothing.

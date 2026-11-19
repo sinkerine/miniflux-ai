@@ -4,6 +4,13 @@ from yaml import safe_load
 from core.entry_filter import filter_entry, source_allowed
 
 
+def test_internal_feeds_are_excluded_from_all_agent_and_news_paths():
+    for url in ("https://ai-news.miniflux", "https://feeds-status.miniflux/"):
+        entry = {"feed": {"site_url": url}}
+        assert not source_allowed(None, entry)
+        assert not source_allowed({"allow_list": ["*"]}, entry)
+
+
 def _as_config(d):
     """Wrap a raw config dict so .agents works like a real Config object."""
     return SimpleNamespace(agents=d["agents"])

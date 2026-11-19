@@ -142,6 +142,7 @@ class Config:
         self.llm_timeout = llm.get("timeout", 60)
         self.llm_max_workers = llm.get("max_workers", 4)
         self.llm_RPM = llm.get("RPM", 1000)
+        self.llm_extra_params = _mapping(llm.get("extra_params"), "llm.extra_params")
         self.llm_batching = self._parse_llm_batch(
             _mapping(llm.get("batching"), "llm.batching")
         )
@@ -164,6 +165,13 @@ class Config:
         self.ai_news_output = self._parse_output(
             _mapping(news.get("output"), "ai_news.output"), OutputConfig()
         )
+
+        feeds_status = _mapping(self.c.get("feeds_status"), "feeds_status")
+        self.feeds_status_enabled = _bool(
+            feeds_status.get("enabled"), "feeds_status.enabled", False
+        )
+        self.feeds_status_url = feeds_status.get("url", self.ai_news_url)
+        self.feeds_status_schedule = feeds_status.get("schedule", "09:00")
 
         self.storage = self._parse_storage(_mapping(self.c.get("storage"), "storage"))
         api = _mapping(self.c.get("api"), "api")
